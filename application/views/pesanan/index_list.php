@@ -25,7 +25,7 @@
                             <th>No Faktur Jual</th>
                             <th>Nama Pelanggan</th>
                             <th>Tanggal</th>
-                            <th>Total</th>
+                            <th>Total Harga</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -36,7 +36,7 @@
                                 <td><?php echo $p->nama_pelanggan; ?></td>
                                 <td><?php echo $p->tanggal; ?></td>
                                 <td><?php echo $p->total; ?></td>
-                                <td><a href="<?php echo site_url('pesanan/detail/' . $p->no_faktur_jual); ?>" class="btn btn-primary btn-sm">Detail</a></td>
+                                <td><a href="<?php echo site_url('admin/detail/' . $p->no_faktur_jual); ?>" class="btn btn-primary btn-sm">Detail</a></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

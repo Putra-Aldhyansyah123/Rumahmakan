@@ -14,7 +14,7 @@
                     <th>No Faktur Jual</th>
                     <th>Nama Pelanggan</th>
                     <th>Tanggal</th>
-                    <th>Total</th>
+                    <th>Total Harga</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
