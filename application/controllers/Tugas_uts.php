@@ -220,7 +220,7 @@ class Tugas_uts extends CI_Controller
         // Redirect kembali ke halaman data divisi
         redirect('Tugas_uts/data_divisi');
     }
-    public function update_divisi($id_divisi)
+    public function update_divisi()
     {
         // Ambil data dari form
         $nama_divisi = $this->input->post('nama_divisi');

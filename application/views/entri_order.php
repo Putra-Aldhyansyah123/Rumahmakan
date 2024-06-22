@@ -1,4 +1,5 @@
-<div class="row">
+<div class="content-wrapper">
+                    <div class="row">
     <div class="col-lg-6 grid-margin">
         <div class="card">
             <div class="card-body">
@@ -16,8 +17,7 @@
                                 <th>Ubah</th>
                             </tr>
                         </thead>
-                        <tbody id="tabelAntrian">
-                        </tbody>
+                        <tbody id="tabelAntrian"><tr><td>1</td><td>test</td><td><label class="badge badge-danger">Bayar</label></td><td><button href="#" class="btn btn-inverse-warning btn-sm" onclick="modalRincian(21, &quot;test&quot;, 1,0)" fdprocessedid="6p9x1s"><i class="mdi mdi-format-list-bulleted-type"></i><i class="mdi mdi-food-fork-drink"></i></button></td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -40,8 +40,7 @@
                                 <th>Rincian</th>
                             </tr>
                         </thead>
-                        <tbody id="tabelAntrianSelesai">
-                        </tbody>
+                        <tbody id="tabelAntrianSelesai"><tr><td>-1</td><td>asdj</td><td><label class="badge badge-success">Selsai :)</label></td><td><button href="#" class="btn btn-inverse-success btn-sm" onclick="modalRincian(20, &quot;asdj&quot;, -1,2)" fdprocessedid="0f81fr"><i class="mdi mdi-playlist-check"></i><i class="mdi mdi-food"></i></button></td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -63,7 +62,7 @@
                                 <div class="input-group-prepend">
                                     <span class="input-group-text bg-warning text-white">Nama</span>
                                 </div>
-                                <input type="text" id="nama_pelanggan" class="form-control" disabled aria-label="Amount (to the nearest dollar)">
+                                <input type="text" id="nama" class="form-control" disabled="" aria-label="Amount (to the nearest dollar)">
                             </div>
                         </div>
                     </div>
@@ -73,7 +72,7 @@
                                 <div class="input-group-prepend">
                                     <span class="input-group-text bg-warning text-white">No Meja</span>
                                 </div>
-                                <input type="number" id="no_Meja" class="form-control" disabled aria-label="Amount (to the nearest dollar)">
+                                <input type="number" id="noMeja" class="form-control" disabled="" aria-label="Amount (to the nearest dollar)">
                             </div>
                         </div>
                     </div>
@@ -89,8 +88,8 @@
                         </tr>
                     </thead>
                     <tbody id="tabelRincian">
-                        <td colspan="5">Memuat data....</td>
-                    </tbody>
+                        <tr><td colspan="5">Memuat data....</td>
+                    </tr></tbody>
                 </table>
                 <div class="row">
                     <div class="col-3"></div>
@@ -100,7 +99,7 @@
                                 <div class="input-group-prepend">
                                     <span class="input-group-text bg-warning text-white">Rp.</span>
                                 </div>
-                                <input type="number" id="jumlah" class="form-control" disabled aria-label="Amount (to the nearest dollar)" disabled>
+                                <input type="number" id="totalHarga" class="form-control" disabled="" aria-label="Amount (to the nearest dollar)">
                             </div>
                         </div>
                     </div>
@@ -116,92 +115,131 @@
         </div>
     </div>
 </div>
+
+
 <script>
-    // Fungsi untuk memuat data antrian
-    function loadAntrian() {
+    tampilkanAntrian()
+    tampilkanAntrianSelesai()
+
+    function tampilkanAntrian() {
+        var isiPesanan = ""
         $.ajax({
-            url: '<?php echo base_url("admin/dataAntrian"); ?>',
-            method: 'GET',
             dataType: 'json',
             success: function(data) {
-                var tableContent = '';
-                data.forEach(function(row) {
-                    tableContent += '<tr>';
-                    tableContent += '<td>' + row.noMeja + '</td>';
-                    tableContent += '<td>' + row.nama + '</td>';
-                    tableContent += '<td>' + (row.status == 1 ? 'Diproses' : 'Belum Diproses') + '</td>';
-                    tableContent += '<td><button class="btn btn-warning" onclick="proses(' + row.id + ', ' + row.status + ')">Ubah</button></td>';
-                    tableContent += '</tr>';
-                });
-                $('#tabelAntrian').html(tableContent);
+                if (data.length) {
+                    for (let i = 0; i < data.length; i++) {
+                        isiPesanan += "<tr><td>" + data[i].noMeja + "</td><td>" + data[i].nama + "</td><td>"
+
+                        if (data[i].status == 0) {
+                            isiPesanan += "<label class='badge badge-danger'>Bayar"
+                        } else {
+                            isiPesanan += "<label class='badge badge-success'>Memasak"
+                        }
+
+                        isiPesanan += "</label></td><td><button href='#' class='btn btn-inverse-warning btn-sm' onClick='modalRincian(" + data[i].id + ", \"" + data[i].nama + "\", " + data[i].noMeja + "," + data[i].status + ")'><i class='mdi mdi-format-list-bulleted-type'></i><i class='mdi mdi-food-fork-drink'></i></button></td></tr>"
+                    }
+                } else {
+                    isiPesanan = "<td colspan='4'>Antrian Masih Kosong :)</td>"
+                }
+                $("#tabelAntrian").html(isiPesanan)
             }
         });
     }
 
-    // Fungsi untuk memuat data antrian yang sudah selesai
-    function loadAntrianSelesai() {
+    function tampilkanAntrianSelesai() {
+        var isiPesanan = ""
         $.ajax({
-            url: '<?php echo base_url("admin/dataAntrianSelesai"); ?>',
-            method: 'GET',
             dataType: 'json',
             success: function(data) {
-                var tableContent = '';
-                data.forEach(function(row) {
-                    tableContent += '<tr>';
-                    tableContent += '<td>' + row.noMeja + '</td>';
-                    tableContent += '<td>' + row.nama + '</td>';
-                    tableContent += '<td>' + 'Selesai' + '</td>';
-                    tableContent += '<td><button class="btn btn-info" onclick="rincianPesanan(' + row.id + ')">Rincian</button></td>';
-                    tableContent += '</tr>';
-                });
-                $('#tabelAntrianSelesai').html(tableContent);
+                if (data.length) {
+                    for (let i = 0; i < data.length; i++) {
+                        isiPesanan += "<tr><td>" + data[i].noMeja + "</td><td>" + data[i].nama + "</td><td><label class='badge badge-success'>Selsai :)</label></td><td><button href='#' class='btn btn-inverse-success btn-sm' onClick='modalRincian(" + data[i].id + ", \"" + data[i].nama + "\", " + data[i].noMeja + "," + data[i].status + ")'><i class='mdi mdi-playlist-check'></i><i class='mdi mdi-food'></i></button></td></tr>"
+                    }
+                } else {
+                    isiPesanan = "<td colspan='4' class='text-center'>Antrian Masih Kosong :)</td>"
+                }
+                $("#tabelAntrianSelesai").html(isiPesanan)
             }
         });
     }
 
-    // Fungsi untuk memproses perubahan status
-    function proses(id, status) {
-        $.ajax({
-            url: '<?php echo base_url("admin/proses"); ?>',
-            method: 'POST',
-            data: { idTransaksi: id, statusTransaksi: status },
-            dataType: 'json',
-            success: function() {
-                loadAntrian();
-                loadAntrianSelesai();
-            }
-        });
+    function modalRincian(id, nama, noMeja, status) {
+        $("#nama").val(nama)
+        $("#noMeja").val(noMeja)
+        $("#proses").show()
+
+        tampilkanRincian(id)
+        if (status == 0) {
+            $("#proses").html("Bayar")
+        } else if (status == 1) {
+            $("#proses").html("Selesai")
+        } else {
+            $("#proses").hide()
+        }
+
+        $("#idTransaksi").val(id)
+        $("#statusTransaksi").val(status)
+
+        $("#modalRincian").modal("show")
     }
 
-    // Fungsi untuk memuat rincian pesanan
-    function rincianPesanan(idAntrian) {
+    function proses() {
+        var id = $("#idTransaksi").val()
+        var status = $("#statusTransaksi").val()
+
         $.ajax({
-            url: '<?php echo base_url("admin/rincianPesanan"); ?>',
-            method: 'POST',
-            data: { idAntrian: idAntrian },
+            data: "idTransaksi=" + id + "&statusTransaksi=" + status,
             dataType: 'json',
             success: function(data) {
-                var tableContent = '';
-                var total = 0;
-                data.forEach(function(row) {
-                    tableContent += '<tr>';
-                    tableContent += '<td>' + row.nama + '</td>';
-                    tableContent += '<td>' + row.jml + '</td>';
-                    tableContent += '<td>' + row.harga + '</td>';
-                    tableContent += '<td>' + (row.jml * row.harga) + '</td>';
-                    tableContent += '</tr>';
-                    total += row.jml * row.harga;
-                });
-                $('#tabelRincian').html(tableContent);
-                $('#jumlah').val(total);
-                $('#modalRincian').modal('show');
+                tampilkanAntrian()
+                tampilkanAntrianSelesai()
+                tutupModalRincian()
             }
         });
     }
 
-    $(document).ready(function() {
-        loadAntrian();
-        loadAntrianSelesai();
-    });
+    function tampilkanRincian(id) {
+        var isiPesanan = ""
+        var totalHarga = 0
+        $.ajax({
+
+            data: "idAntrian=" + id,
+            dataType: 'json',
+            success: function(data) {
+                if (data.length) {
+                    for (let i = 0; i < data.length; i++) {
+                        totalHarga += data[i].harga * data[i].jumlah
+                        isiPesanan += "<tr><td>" + data[i].nama + "</td><td>" + data[i].jumlah + "</td><td>" + formatRupiah(data[i].harga.toString()) + "</td><td>" + formatRupiah((data[i].harga * data[i].jumlah).toString()) + "</td></tr>"
+                    }
+                } else {
+                    isiPesanan = "<td colspan='4'>Antrian Masih Kosong :)</td>"
+                }
+                $("#tabelRincian").html(isiPesanan)
+                $("#totalHarga").val(formatRupiah(totalHarga.toString()))
+
+            }
+        });
+    }
+
+    function tutupModalRincian() {
+        $("#modalRincian").modal("hide")
+    }
+
+    function formatRupiah(angka, prefix) {
+        var number_string = angka.replace(/[^,\d]/g, '').toString(),
+            split = number_string.split(','),
+            sisa = split[0].length % 3,
+            rupiah = split[0].substr(0, sisa),
+            ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+        // tambahkan titik jika yang di input sudah menjadi angka ribuan
+        if (ribuan) {
+            separator = sisa ? '.' : '';
+            rupiah += separator + ribuan.join('.');
+        }
+
+        rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+        return prefix == undefined ? rupiah : (rupiah ? 'Rp. ' + rupiah : '');
+    }
 </script>
-
+                </div>

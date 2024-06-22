@@ -6,7 +6,7 @@ class login extends CI_Controller
     function __construct()
     {
         parent::__construct();
-        $this->load->model('M_program');
+        $this->load->model('M_makan');
     }
 
     public function index()
@@ -17,36 +17,37 @@ class login extends CI_Controller
 
     function login()
     {
-        $username = $this->input->post('username');
-        $password = $this->input->post('password');
+        $username = $this->input->post('username');  
+        $password = $this->input->post('password'); 
 
-        $this->form_validation->set_rules('username', 'Username', 'trim|required');
+        $this->form_validation->set_rules('username', 'Username', 'trim|required'); 
         $this->form_validation->set_rules('password', 'Password', 'trim|required');
 
         if ($this->form_validation->run() != false) {
-            $where = array(
+            $where = array( 
                 'username' => $username,
                 'password' => md5($password)
             );
 
-            $data = $this->M_program->edit_data($where, 'user');
-            $d = $this->M_program->edit_data($where, 'user')->row();
+            $data = $this->M_makan->edit_data($where, 'user'); 
+            $d = $this->M_makan->edit_data($where, 'user')->row();
 
             $cek = $data->num_rows();
 
-            if ($cek > 0) {
+            if ($cek > 0) { 
                 $session = array(
-                    'id' => $d->id_user,
-                    'nama' => $d->nama_user,
+                    'id' => $d->id_user, 
+                    'nama' => $d->nama_user, 
                     'status' => 'login'
                 );
-                $this->session->set_userdata($session);
-                redirect(base_url() . 'admin');
+                $this->session->set_userdata($session); 
+                redirect(base_url().'admin');
             } else {
-                redirect(base_url() . 'login?pesan=gagal');
+                redirect(base_url().'login?pesan=gagal');
             }
         } else {
             $this->load->view('login');
         }
     }
 }
+?>  

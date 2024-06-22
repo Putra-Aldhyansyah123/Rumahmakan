@@ -3,49 +3,28 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 class Admin extends CI_Controller
 {
-    public function __construct()
+    function __construct()
     {
         parent::__construct();
+        if ($this->session->userdata('status') != 'login') {
+            redirect(base_url() . 'welcome?pesan=belumlogin');
+        }
+
+        $this->load->model('M_makan');
+        $this->load->model('M_antrian');
         $this->load->model('M_menu');
         $this->load->model('M_transaksi');
-        $this->load->model('M_pesanan');
-        $this->load->library('cart');
-    }
-
-
-    public function detail($no_faktur_jual)
-    {
-        $this->load->view("template/head");
-        $this->load->view("template/sidebar");
-        $this->load->view("template/navbar");
-        $data['detail'] = $this->M_pesanan->get_pesanan_detail($no_faktur_jual);
-        $this->load->view("pesanan/detail", $data);
-        $this->load->view("template/footer");
+        $this->load->library('upload');
+        $this->load->helper('url');
+  
     }
 
     public function index()
     {
-
-
         $this->load->view("template/head");
         $this->load->view("template/sidebar");
         $this->load->view("template/navbar");
-        // $data['pesanan'] = $this->M_pesanan->get_all_pesanan();
-        $data['pesanan'] = $this->db->query("SELECT * FROM pesanan ORDER BY no_faktur_jual ASC LIMIT 7")->result();
-
-        $this->load->view("pesanan/index", $data);
-        $this->load->view("template/footer");
-    }
-
-    public function index_list()
-    {
-
-
-        $this->load->view("template/head");
-        $this->load->view("template/sidebar");
-        $this->load->view("template/navbar");
-        $data['pesanan'] = $this->M_pesanan->get_all_pesanan();
-        $this->load->view("pesanan/index_list", $data);
+        $this->load->view("template/index");
         $this->load->view("template/footer");
     }
 
@@ -55,7 +34,7 @@ class Admin extends CI_Controller
         $this->load->view("template/head");
         $this->load->view("template/sidebar");
         $this->load->view("template/navbar");
-        $this->load->view("daftar_menu", $data); // 
+        $this->load->view("daftar_menu", $data);
         $this->load->view("template/footer");
     }
 
@@ -68,18 +47,33 @@ class Admin extends CI_Controller
         $this->load->view("template/footer");
     }
 
-    public function tambah_menu_proses()
-    {
-        $data = array(
-            'nama_menu' => $this->input->post('nama_menu'),
-            'gambar' => $this->input->post('gambar'),
-            'harga' => $this->input->post('harga'),
-            'jenis_menu' => $this->input->post('jenis_menu'),
-            'status' => $this->input->post('status')
-        );
+    public function tambah_menu_proses() {
+        $config['upload_path'] = './assets_5/uploads/';
+        $config['allowed_types'] = 'gif|jpg|png';
+        $config['max_size'] = 2048; // Optional: Set a maximum file size
+        $this->load->library('upload', $config);
 
-        $this->M_menu->insert_menu($data);
-        redirect('admin/daftar_menu');
+        if (!$this->upload->do_upload('gambar')) {
+            $error = $this->upload->display_errors();
+            // Handle upload error
+            // For example, you can pass this error to the view
+            $this->session->set_flashdata('error', $error);
+            redirect('admin/tambah_menu');
+        } else {
+            $upload_data = $this->upload->data();
+            $gambar = $upload_data['file_name'];
+
+            $data = array(
+                'nama_menu' => $this->input->post('nama_menu'),
+                'gambar' => $gambar,
+                'harga' => $this->input->post('harga'),
+                'jenis_menu' => $this->input->post('jenis_menu'),
+                'status' => $this->input->post('status')
+            );
+
+            $this->M_menu->insert_menu($data);
+            redirect('admin/daftar_menu');
+        }
     }
 
     public function edit_menu($id_menu)
@@ -88,44 +82,56 @@ class Admin extends CI_Controller
         $this->load->view("template/head");
         $this->load->view("template/sidebar");
         $this->load->view("template/navbar");
-        $this->load->view("edit_menu", $data); // View untuk form edit menu
+        $this->load->view("edit_menu", $data);
         $this->load->view("template/footer");
     }
-
     public function update_menu_proses($id_menu)
     {
+        // Load the upload library with the configuration
+        $config['upload_path'] = './assets_5/uploads/';
+        $config['allowed_types'] = 'gif|jpg|png';
+        $config['max_size'] = 2048; // Set max size if needed
+        $this->upload->initialize($config);
+
         $data = array(
             'nama_menu' => $this->input->post('nama_menu'),
-            'gambar' => $this->input->post('gambar'), // Biasanya akan di-upload dan diambil nama filenya
             'harga' => $this->input->post('harga'),
             'jenis_menu' => $this->input->post('jenis_menu'),
             'status' => $this->input->post('status')
         );
 
-        $this->M_menu->update_menu($id_menu, $data);
+        // Check if there is a file to upload
+        if (!empty($_FILES['gambar']['name'])) {
+            if ($this->upload->do_upload('gambar')) {
+                $upload_data = $this->upload->data();
+                $data['gambar'] = $upload_data['file_name'];
+            } else {
+                // Handle the upload error
+                $error = $this->upload->display_errors();
+                $this->session->set_flashdata('error', $error);
+                redirect('admin/edit_menu/' . $id_menu);
+                return;
+            }
+        }
+        // Update the menu data
+        if ($this->M_menu->update_menu($id_menu, $data)) {
+            // Set success message
+            $this->session->set_flashdata('success', 'Menu updated successfully');
+        } else {
+            // Set failure message
+            $this->session->set_flashdata('error', 'Failed to update menu');
+        }
+        // Redirect to the menu list
         redirect('admin/daftar_menu');
     }
-
-
     public function del_menu($id_menu)
     {
         $this->M_menu->delete_menu($id_menu);
-        redirect('admin/delete_menu');
+        redirect('admin/daftar_menu');
     }
 
-    public function entri_order()
-    {
-        $data['transaksi'] = $this->M_transaksi->get_pesanan_by_antrian('transaksi')->result();
-        $this->load->view("template/head");
-        $this->load->view("template/sidebar");
-        $this->load->view("template/navbar");
-        $this->load->view("entri_order", $data);
-        $this->load->view("template/footer");
-    }
-
-
-    public function transaksi()
-    {
+    //transaksi
+    public function transaksi() {
         $data['menu'] = $this->M_menu->get_all_menu();
         $this->load->view('template/head');
         $this->load->view('template/sidebar');
@@ -133,11 +139,7 @@ class Admin extends CI_Controller
         $this->load->view('transaksi/transaksi', $data);
         $this->load->view('template/footer');
     }
-
-
-
-    public function add_to_cart($id_menu)
-    {
+    public function add_to_cart($id_menu) {
         $menu = $this->M_menu->get_menu_by_id($id_menu);
         $data = array(
             'id' => $menu->id_menu,
@@ -149,8 +151,7 @@ class Admin extends CI_Controller
         redirect('admin/transaksi');
     }
 
-    public function update_cart()
-    {
+    public function update_cart() {
         $cart_info = $this->input->post('cart');
         foreach ($cart_info as $id => $cart) {
             $data = array(
@@ -162,14 +163,12 @@ class Admin extends CI_Controller
         redirect('admin/transaksi');
     }
 
-    public function remove_from_cart($rowid)
-    {
+    public function remove_from_cart($rowid) {
         $this->cart->remove($rowid);
         redirect('admin/transaksi');
     }
 
-    public function checkout()
-    {
+    public function checkout() {
         $cart = $this->cart->contents();
         if (empty($cart)) {
             redirect('admin/transaksi');
@@ -211,23 +210,35 @@ class Admin extends CI_Controller
         redirect('admin/transaksi');
     }
 
+    //order
+    function entri_order()
+    {
+        $data['transaksi'] = $this->M_makan->get_data('transaksi')->result();
+        $this->load->view("template/head");
+        $this->load->view("template/sidebar");
+        $this->load->view("template/navbar");
+        $this->load->view("entri_order", $data); // 
+        $this->load->view("template/footer");
+
+    }
+
     public function dataAntrian()
     {
-        $antrian = $this->M_transaksi->get_antrian(['status !=' => 2]);
-        echo json_encode($antrian);
+        $pesanan = $this->M_antrian->get_antrian(['status !=' => 2]);
+        echo json_encode($pesanan);
     }
 
     public function dataAntrianSelesai()
     {
         date_default_timezone_set("Asia/Jakarta");
         $tanggal = date('Y-m-d') . " 00:00:00";
-        $antrian_selesai = $this->M_transaksi->get_antrian(['status' => 2, 'tanggal >=' => $tanggal]);
-        echo json_encode($antrian_selesai);
+        $pesanan_selesai = $this->M_antrian->get_antrian(['status' => 2, 'tanggal >=' => $tanggal]);
+        echo json_encode($pesanan_selesai);
     }
 
     public function proses()
     {
-        $id = $this->input->post("idTransaksi");
+        $id = $this->input->post("no_faktur_jual");
         $status = $this->input->post("statusTransaksi");
         $data = ["status" => $status + 1];
         if ($status == 0) {
@@ -236,19 +247,21 @@ class Admin extends CI_Controller
             $data["tanggal"] = date('Y-m-d H:i:s');
         }
 
-        $this->M_transaksi->update_antrian(['id' => $id], $data);
+        $this->M_antrian->update_antrian(['no_faktur_jual' => $no_faktur_jual], $data);
         echo json_encode("");
     }
 
     public function rincianPesanan()
     {
-        $idAntrian = $this->input->post("idAntrian");
-        $pesanan = $this->M_transaksi->get_pesanan_by_antrian($idAntrian);
+        $idAntrian = $this->input->post("no_faktur_jual");
+        $pesanan = $this->M_transaksi->get_pesanan_by_antrian($id);
         foreach ($pesanan as &$item) {
-            $menu = $this->M_menu->get_menu_by_id($item["id_menu"]);
-            $item["nama"] = $menu->nama_menu;
-            $item["harga"] = $menu->harga;
+            $menu = $this->M_menu->get_menu_by_id($item["id_Menu"]);
+            $item["nama"] = $menu["nama"];
+            $item["harga"] = $menu["harga"];
         }
         echo json_encode($pesanan);
     }
+
 }
+?>
