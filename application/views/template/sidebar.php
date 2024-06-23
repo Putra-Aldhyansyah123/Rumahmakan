@@ -7,12 +7,12 @@
         <a href="index.html" class="brand-logo">
           <img src="../assets_5/assets/images/logo.svg" alt="logo">
         </a>
-      </div>
+      </div> 
       <div class="mdc-drawer__content">
         <div class="mdc-list-group">
           <nav class="mdc-list mdc-drawer-menu">
             <div class="mdc-list-item mdc-drawer-item">
-              <a class="mdc-drawer-link" href="index.html">
+              <a class="mdc-drawer-link" href="<?php echo base_url('admin/index') ?>">
                 <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">home</i>
                 Dashboard
               </a>
@@ -32,8 +32,8 @@
                     </a>
                   </div>
                   <div class="mdc-list-item mdc-drawer-item">
-                    <a class="mdc-drawer-link"  href="<?php echo base_url('admin/transaksi') ?>">
-                      Data Transaksi
+                    <a class="mdc-drawer-link"  href="<?php echo base_url('admin/pesanan') ?>">
+                      Data pesanan
                     </a>
                   </div>
                 </nav>
@@ -102,7 +102,7 @@
         <div class="profile-actions">
           <a href="javascript:;">Settings</a>
           <span class="divider"></span>
-          <a href="javascript:;">Logout</a>
+          <a href="<?php echo base_url().'admin/logout'; ?>">Logout</a>
         </div>
       </div>
     </aside>

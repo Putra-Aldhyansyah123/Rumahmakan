@@ -38,4 +38,9 @@ class M_menu extends CI_Model {
         $this->db->where('id_menu', $id_menu);
         return $this->db->delete('MENU');
     }
+    public function get_rekomendasi_menu() {
+        $this->db->limit(5);
+        $query = $this->db->get('menu');
+        return $query->result_array();
+    }
 }
